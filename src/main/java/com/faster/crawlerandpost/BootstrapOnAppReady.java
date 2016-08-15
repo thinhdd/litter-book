@@ -1,27 +1,48 @@
 package com.faster.crawlerandpost;
 
+import com.google.gson.Gson;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by thinhdd on 8/15/2016.
- */
-public class Crawler {
-    public static void main(String[] args) throws IOException {
-        Crawler crawler = new Crawler();
-        crawler.getAllBookInfo();
+@Component
+public class BootstrapOnAppReady implements ApplicationListener<ApplicationReadyEvent> {
+
+    File file = new File("data.crawler");
+    Gson gson = new Gson();
+    PrintWriter printWriter=null;
+
+    @Override
+    public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
+        try {
+            getAllBookInfo();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
-    private void getAllBookInfo() throws IOException {
+
+    private List<BookInfo> getAllBookInfo() throws IOException {
+        if(file.exists())
+        {
+            return null;
+        }
+        printWriter = new PrintWriter(file);
+
         String url = "http://www.allitebooks.com/page/";
         List<BookInfo> bookInfos = new ArrayList<BookInfo>();
-        for (int i = 1; i < 627; i++) {
+        for (int i = 1; i < 2; i++) {
             Document doc = Jsoup.connect(url + i).get();
             Elements elements = doc.select("a[rel=bookmark]");
             for (int j = 0; j < elements.size(); j++) {
@@ -32,12 +53,13 @@ public class Crawler {
                 Element element = elements.get(i);
                 String linkDetailBook = element.attr("href");
                 Document subDoc = Jsoup.connect(linkDetailBook).get();
-                bookInfos.add(getInfoBook(subDoc));
-                System.out.println("j="+j);
+                String s = gson.toJson(getInfoBook(subDoc));
+                printWriter.write(s);
             }
             System.out.println("i="+i);
         }
-        System.out.println(bookInfos.size());
+        printWriter.close();
+        return bookInfos;
     }
 
     private BookInfo getInfoBook(Document document)
@@ -58,5 +80,6 @@ public class Crawler {
         bookInfo.setDownloadLink(document.select(".download-links").get(0).childNode(1).attr("href"));
         return bookInfo;
     }
+
 
 }

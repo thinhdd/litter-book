@@ -20,14 +20,10 @@ import java.util.List;
 @ComponentScan
 public class Example {
 
-    Gson gson = new Gson();
-    PrintWriter printWriter=null;
-
     @RequestMapping("/")
     String home() throws IOException {
-        File file = new File("data.crawler");
         BufferedReader br = new BufferedReader(new FileReader("data.crawler"));
-        return System.getProperty(br.readLine());
+        return br.readLine();
     }
 
     @RequestMapping("/reset")

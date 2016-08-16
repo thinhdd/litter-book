@@ -32,17 +32,12 @@ public class BootstrapOnAppReady implements ApplicationListener<ApplicationReady
 
     }
 
-
     private List<BookInfo> getAllBookInfo() throws IOException {
-        if(file.exists())
-        {
-            return null;
-        }
         printWriter = new PrintWriter(file);
-
         String url = "http://www.allitebooks.com/page/";
         List<BookInfo> bookInfos = new ArrayList<BookInfo>();
-        for (int i = 1; i < 2; i++) {
+        printWriter.write("[");
+        for (int i = 1; i < 267; i++) {
             Document doc = Jsoup.connect(url + i).get();
             Elements elements = doc.select("a[rel=bookmark]");
             for (int j = 0; j < elements.size(); j++) {
@@ -54,10 +49,11 @@ public class BootstrapOnAppReady implements ApplicationListener<ApplicationReady
                 String linkDetailBook = element.attr("href");
                 Document subDoc = Jsoup.connect(linkDetailBook).get();
                 String s = gson.toJson(getInfoBook(subDoc));
-                printWriter.write(s);
+                printWriter.write(","+s);
             }
             System.out.println("i="+i);
         }
+        printWriter.write("]");
         printWriter.close();
         return bookInfos;
     }
